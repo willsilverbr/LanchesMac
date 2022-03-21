@@ -8,20 +8,20 @@ namespace LanchesMac.Controllers
 {
     public class CarrinhoCompraController : Controller
     {
-        private readonly ILancheRepository lancheRepository;
+        private readonly ILancheRepository _lancheRepository;
         private readonly CarrinhoCompra _carrinhoCompra;
 
-        public CarrinhoCompraController(ILancheRepository lancheRepository, CarrinhoCompra carrinhoCompra)
+        public CarrinhoCompraController(ILancheRepository lancheRepository,
+            CarrinhoCompra carrinhoCompra)
         {
-            this.lancheRepository = lancheRepository;
+            _lancheRepository = lancheRepository;
             _carrinhoCompra = carrinhoCompra;
         }
 
         public IActionResult Index()
         {
-            var itens = _carrinhoCompra.GetCarrinhoCompraItems();
-
-            _carrinhoCompra.CarrinhoCompraItens = itens;
+            var itens = _carrinhoCompra.GetCarrinhoCompraItens();
+            _carrinhoCompra.CarrinhoCompraItems = itens;
 
             var carrinhoCompraVM = new CarrinhoCompraViewModel
             {
@@ -31,20 +31,23 @@ namespace LanchesMac.Controllers
 
             return View(carrinhoCompraVM);
         }
-
-        public IActionResult AdicionarItemNoCarrinhoCompra(int lanceId)
+        public IActionResult AdicionarItemNoCarrinhoCompra(int lancheId)
         {
-            var lancheSelecionado = lancheRepository.Lanches.FirstOrDefault(p => p.LancheId == lanceId);
+            var lancheSelecionado = _lancheRepository.Lanches
+                                    .FirstOrDefault(p => p.LancheId == lancheId);
+
             if (lancheSelecionado != null)
             {
                 _carrinhoCompra.AdicionarAoCarrinho(lancheSelecionado);
             }
-            return RedirectToAction("Index");   
+            return RedirectToAction("Index");
         }
 
-        public IActionResult RemoverItemDoCarrinhoCompra(int lanceId)
+        public IActionResult RemoverItemDoCarrinhoCompra(int lancheId)
         {
-            var lancheSelecionado = lancheRepository.Lanches.FirstOrDefault(p => p.LancheId == lanceId);
+            var lancheSelecionado = _lancheRepository.Lanches
+                                    .FirstOrDefault(p => p.LancheId == lancheId);
+
             if (lancheSelecionado != null)
             {
                 _carrinhoCompra.RemoverDoCarrinho(lancheSelecionado);

@@ -1,3 +1,16 @@
-﻿<h1>View Index</h1>
+﻿@model HomeViewModel
+
 
 <partial name="_Carousel"/> @*Importação do bootstrap/partial Classe Carosel*@
+
+<h2>Os preferido da semana</h2>
+<h4>Tá com fome ???</h4>
+
+<div class="row">
+
+    @foreach (var lanche in Model.LanchesPreferidos)
+    {
+        <partial name="_LanchesResumo" for="@lanche"/>
+    } 
+
+</div>

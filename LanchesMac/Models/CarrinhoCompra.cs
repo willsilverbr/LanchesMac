@@ -12,7 +12,7 @@ namespace LanchesMac.Models
             _Context = context;
         }
         public string CarrinhoCompraId { get; set; }
-        public List<CarrinhoCompraItem> CarrinhoCompraItens { get; set; }
+        public List<CarrinhoCompraItem> CarrinhoCompraItems { get; set; }
         public static CarrinhoCompra GetCarrinho(IServiceProvider services)
         {
             //Define uma Sessão
@@ -83,10 +83,10 @@ namespace LanchesMac.Models
             return quantidadeLocal; 
         }
 
-        public List<CarrinhoCompraItem> GetCarrinhoCompraItems()
+        public List<CarrinhoCompraItem> GetCarrinhoCompraItens()
         {
-            return CarrinhoCompraItens ?? 
-                (CarrinhoCompraItens = 
+            return CarrinhoCompraItems ?? 
+                (CarrinhoCompraItems = 
                     _Context.carrinhoCompraItens
                     .Where(c => c.CarrinhoCompraId == CarrinhoCompraId)
                     .Include(s => s.Lanche)
