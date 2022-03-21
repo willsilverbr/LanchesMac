@@ -11,6 +11,7 @@ namespace LanchesMac.Controllers
        
         public IActionResult Index()
         {
+            
             return View();
         }
 
