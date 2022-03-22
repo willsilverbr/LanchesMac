@@ -2,10 +2,13 @@
 using LanchesMac.Models;
 using LanchesMac.Repositories;
 using LanchesMac.Repositories.Interfaces;
+using LanchesMac.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ReflectionIT.Mvc.Paging;
 
 namespace LanchesMac;
-
 public class Startup
 {
     public Startup(IConfiguration configuration)
@@ -15,25 +18,64 @@ public class Startup
 
     public IConfiguration Configuration { get; }
 
-    // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
+        services.AddIdentity<IdentityUser, IdentityRole>()
+             .AddEntityFrameworkStores<AppDbContext>()
+             .AddDefaultTokenProviders();
+
+        //services.Configure<IdentityOptions>(options =>
+        //{
+        //    // Default Password settings.
+        //    options.Password.RequireDigit = false;
+        //    options.Password.RequireLowercase = false;
+        //    options.Password.RequireNonAlphanumeric = false;
+        //    options.Password.RequireUppercase = false;
+        //    options.Password.RequiredLength = 3;
+        //    options.Password.RequiredUniqueChars = 1;
+        //});
+
         services.AddTransient<ILancheRepository, LancheRepository>();
-        services.AddTransient<ICategoriaRepository, CategoriaRepository>(); 
+        services.AddTransient<ICategoriaRepository, CategoriaRepository>();
+        services.AddTransient<IPedidoRepository, PedidoRepository>();
+        services.AddScoped<ISeedUserRoleInitial, SeedUserRoleInitial>();
+
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("Admin",
+                politica =>
+                {
+                    politica.RequireRole("Admin");
+                });
+        });
+
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddScoped(sp => CarrinhoCompra.GetCarrinho(sp));
 
         services.AddControllersWithViews();
 
+        services.AddPaging(options =>
+        {
+            options.ViewName = "Bootstrap4";
+            options.PageParameterName = "pageindex";
+        });
+
         services.AddMemoryCache();
-        services.AddSession(); 
+        //services.AddDistributedMemoryCache();
+
+        services.AddSession();
+        //{
+        //    options.IdleTimeout = TimeSpan.FromSeconds(10);
+        //    options.Cookie.HttpOnly = true;
+        //    options.Cookie.IsEssential = true;
+        //});
     }
 
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    public void Configure(IApplicationBuilder app,
+        IWebHostEnvironment env, ISeedUserRoleInitial seedUserRoleInitial)
     {
         if (env.IsDevelopment())
         {
@@ -42,20 +84,30 @@ public class Startup
         else
         {
             app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
         app.UseHttpsRedirection();
-        app.UseStaticFiles();
 
+        app.UseStaticFiles();
         app.UseRouting();
 
-        app.UseSession();   
+        //cria os perfis
+        seedUserRoleInitial.SeedRoles();
+        //cria os usuários e atribui ao perfil
+        seedUserRoleInitial.SeedUsers();
 
+        app.UseSession();
+
+        app.UseAuthentication();
         app.UseAuthorization();
+
 
         app.UseEndpoints(endpoints =>
         {
+            endpoints.MapControllerRoute(
+             name: "areas",
+             pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
+
             endpoints.MapControllerRoute(
                name: "categoriaFiltro",
                pattern: "Lanche/{action}/{categoria?}",
@@ -67,4 +119,3 @@ public class Startup
         });
     }
 }
-
