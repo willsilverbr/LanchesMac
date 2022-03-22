@@ -47,7 +47,7 @@ namespace LanchesMac.Models
         public bool EmEstoque { get; set; }
 
         //[NotMapped] //Para não mapear no banco
-        public int CategoriaID { get; set;  }
+        public int CategoriaId { get; set;  }
         public virtual Categoria Categoria { get; set; }
     }
 }
